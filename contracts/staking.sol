@@ -27,6 +27,11 @@ contract ABDSStaking {
         uint256 duration,
         uint256 apr
     );
+    event StakeDurationExtended(
+        address indexed user,
+        uint256 amount,
+        uint256 duration
+    );
     event UnlockedStakesWithdrawn(
         address indexed user,
         uint256 stakeAmount,
@@ -51,6 +56,21 @@ contract ABDSStaking {
     ) external view returns (Stake memory) {
         require(index < userStakes[user].length, "Invalid index");
         return userStakes[user][index];
+    }
+
+    function boost(uint256 index, uint256 additionaldays) external {
+        require(additionaldays > 0, "Additional days must be greater than 0");
+
+        Stake storage stake = userStakes[msg.sender][index];
+        require(
+            stake.startTime + stake.duration * 1 days > block.timestamp,
+            "lock time passed"
+        );
+        stake.duration += additionaldays;
+        if (additionaldays >= 365) stake.apr += 8;
+        else if (additionaldays >= 182) stake.apr += 5;
+        else stake.apr += 2;
+        emit StakeDurationExtended(msg.sender, stake.amount, stake.duration);
     }
 
     function stakeTokens(uint256 _amount, uint256 _duration) external {
@@ -79,7 +99,7 @@ contract ABDSStaking {
     }
 
     function Claim(uint8 tokenType) external {
-        require(tokenType <= 2, "Invalid token type");
+        require(tokenType <= 3, "Invalid token type");
         Stake[] storage stakes = userStakes[msg.sender];
         uint256 totalReward = 0;
         uint256 i = 0;
@@ -134,6 +154,17 @@ contract ABDSStaking {
                     "Insufficient USDC balance"
                 );
                 usdcToken.transfer(msg.sender, convertedAmount);
+            } else if (tokenType == 3) {
+                // Fetch the price of ABDS token in Ether from the Uniswap Oracle
+                uint256 priceInEther = uniswapOracle.getABDSPriceInETH();
+                convertedAmount = (totalReward * priceInEther) / 1e18;
+
+                // Transfer Ether as reward (after converting it from ABDS to Ether)
+                require(
+                    address(this).balance >= convertedAmount,
+                    "Insufficient Ether balance"
+                );
+                payable(msg.sender).transfer(convertedAmount); // Transfer Ether to the user
             }
         }
 

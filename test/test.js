@@ -25,6 +25,7 @@ describe("ABDSStaking Contract", function () {
     const MockPriceOracle = await ethers.getContractFactory("MockPriceOracle");
     mockPriceOracle = await MockPriceOracle.deploy(
       ethers.parseUnits("1", 18),
+      ethers.parseUnits("1", 18),
       ethers.parseUnits("1", 18)
     );
     await mockPriceOracle.waitForDeployment();
@@ -114,7 +115,7 @@ describe("ABDSStaking Contract", function () {
     });
 
     it("Should revert on invalid token type", async function () {
-      await expect(ABDSStaking.connect(user).Claim(3)).to.be.revertedWith(
+      await expect(ABDSStaking.connect(user).Claim(47)).to.be.revertedWith(
         "Invalid token type"
       );
     });
@@ -185,6 +186,7 @@ describe("ABDSStaking Contract", function () {
       const nextUserToken = await usdcToken.balanceOf(user.address);
       expect(nextUserToken - currentUserToken).to.be.equal(45);
     });
+
     it("Should revert if too big reward(usdt)", async function () {
       mockPriceOracle.setABDSPriceInUSDT(ethers.parseUnits("1.5", 18));
       ABDSStaking.connect(user).stakeTokens(100000000, 365);
@@ -208,6 +210,22 @@ describe("ABDSStaking Contract", function () {
       await time.latest();
       await expect(ABDSStaking.connect(user).Claim(2)).to.be.revertedWith(
         "Insufficient USDC balance"
+      );
+    });
+
+    it("Should revert if too big reward(eth)", async function () {
+      mockPriceOracle.setABDSPriceInETH(ethers.parseUnits("1", 18));
+      ABDSStaking.connect(user).stakeTokens(1000, 365);
+      await time.latest();
+      const currentUserToken = await ethers.provider.getBalance(
+        ABDSStaking.getAddress()
+      );
+
+      await time.increase(365 * 24 * 60 * 60);
+      await time.latest();
+
+      await expect(ABDSStaking.connect(user).Claim(3)).to.be.revertedWith(
+        "Insufficient Ether balance"
       );
     });
   });
@@ -267,6 +285,55 @@ describe("ABDSStaking Contract", function () {
       await expect(ABDSStaking.connect(user).withdraw()).to.be.revertedWith(
         "Insufficient ABDS balance"
       );
+    });
+  });
+
+  describe("Boost days", function () {
+    beforeEach(async function () {
+      const mintAmount = 1000000; // 1000 tokens
+      await abdsToken.mint(ABDSStaking.getAddress(), mintAmount);
+      await abdsToken
+        .connect(user)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+      await usdtToken
+        .connect(user)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+      await usdcToken
+        .connect(user)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+      await abdsToken
+        .connect(hacker)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+    });
+
+    it("Should revert on zero days", async function () {
+      await ABDSStaking.connect(user).stakeTokens(1000, 365);
+      await expect(ABDSStaking.connect(user).boost(0, 0)).to.be.revertedWith(
+        "Additional days must be greater than 0"
+      );
+    });
+
+    it("Should revert after unlock time", async function () {
+      await ABDSStaking.connect(user).stakeTokens(1000, 365);
+      await time.increase(368 * 24 * 60 * 60);
+      await time.latest();
+      await expect(ABDSStaking.connect(user).boost(0, 150)).to.be.revertedWith(
+        "lock time passed"
+      );
+    });
+
+    it("Should boost correctly", async function () {
+      await ABDSStaking.connect(user).stakeTokens(1000, 100);
+      await time.increase(80 * 24 * 60 * 60);
+      await time.latest();
+      await ABDSStaking.connect(user).boost(0, 265);
+      await time.increase(285 * 24 * 60 * 60);
+      await time.latest();
+
+      const current = await abdsToken.balanceOf(user.address);
+      await ABDSStaking.connect(user).withdraw();
+      const next = await abdsToken.balanceOf(user.address);
+      expect(next - current).to.be.equals(1140);
     });
   });
 });

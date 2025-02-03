@@ -7,15 +7,22 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 interface IUniswapOracle {
     function getABDSPriceInUSDT() external view returns (uint256);
     function getABDSPriceInUSDC() external view returns (uint256);
+    function getABDSPriceInETH() external view returns (uint256);
 }
 
 contract UniswapV3PriceOracle is IUniswapOracle, Ownable {
     address public abdsUsdtPool;
     address public abdsUsdcPool;
+    address public abdsEthPool;
 
-    constructor(address _abdsUsdtPool, address _abdsUsdcPool) {
+    constructor(
+        address _abdsUsdtPool,
+        address _abdsUsdcPool,
+        address _abdsEthpool
+    ) {
         abdsUsdtPool = _abdsUsdtPool;
         abdsUsdcPool = _abdsUsdcPool;
+        abdsEthPool = _abdsEthpool;
     }
 
     function getABDSPriceInUSDT() public view override returns (uint256) {
@@ -23,6 +30,10 @@ contract UniswapV3PriceOracle is IUniswapOracle, Ownable {
     }
 
     function getABDSPriceInUSDC() public view override returns (uint256) {
+        return getPriceFromUniswap(abdsUsdcPool);
+    }
+    // getABDSPriceInETH
+    function getABDSPriceInETH() public view override returns (uint256) {
         return getPriceFromUniswap(abdsUsdcPool);
     }
 
@@ -35,9 +46,11 @@ contract UniswapV3PriceOracle is IUniswapOracle, Ownable {
 
     function setPools(
         address _abdsUsdtPool,
-        address _abdsUsdcPool
+        address _abdsUsdcPool,
+        address _abdsEthPool
     ) external onlyOwner {
         abdsUsdtPool = _abdsUsdtPool;
         abdsUsdcPool = _abdsUsdcPool;
+        abdsEthPool = _abdsEthPool;
     }
 }

@@ -44,6 +44,7 @@ export interface ABDSStakingInterface extends Interface {
     nameOrSignature:
       | "Claim"
       | "abdsToken"
+      | "boost"
       | "getUserStake"
       | "lastRewardTime"
       | "stakeTokens"
@@ -57,12 +58,17 @@ export interface ABDSStakingInterface extends Interface {
   getEvent(
     nameOrSignatureOrTopic:
       | "RewardsWithdrawn"
+      | "StakeDurationExtended"
       | "Staked"
       | "UnlockedStakesWithdrawn"
   ): EventFragment;
 
   encodeFunctionData(functionFragment: "Claim", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "abdsToken", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "boost",
+    values: [BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "getUserStake",
     values: [AddressLike, BigNumberish]
@@ -89,6 +95,7 @@ export interface ABDSStakingInterface extends Interface {
 
   decodeFunctionResult(functionFragment: "Claim", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "abdsToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "boost", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getUserStake",
     data: BytesLike
@@ -122,6 +129,24 @@ export namespace RewardsWithdrawnEvent {
     user: string;
     reward: bigint;
     tokenType: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace StakeDurationExtendedEvent {
+  export type InputTuple = [
+    user: AddressLike,
+    amount: BigNumberish,
+    duration: BigNumberish
+  ];
+  export type OutputTuple = [user: string, amount: bigint, duration: bigint];
+  export interface OutputObject {
+    user: string;
+    amount: bigint;
+    duration: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -223,6 +248,12 @@ export interface ABDSStaking extends BaseContract {
 
   abdsToken: TypedContractMethod<[], [string], "view">;
 
+  boost: TypedContractMethod<
+    [index: BigNumberish, additionaldays: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
   getUserStake: TypedContractMethod<
     [user: AddressLike, index: BigNumberish],
     [ABDSStaking.StakeStructOutput],
@@ -268,6 +299,13 @@ export interface ABDSStaking extends BaseContract {
   getFunction(
     nameOrSignature: "abdsToken"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "boost"
+  ): TypedContractMethod<
+    [index: BigNumberish, additionaldays: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "getUserStake"
   ): TypedContractMethod<
@@ -320,6 +358,13 @@ export interface ABDSStaking extends BaseContract {
     RewardsWithdrawnEvent.OutputObject
   >;
   getEvent(
+    key: "StakeDurationExtended"
+  ): TypedContractEvent<
+    StakeDurationExtendedEvent.InputTuple,
+    StakeDurationExtendedEvent.OutputTuple,
+    StakeDurationExtendedEvent.OutputObject
+  >;
+  getEvent(
     key: "Staked"
   ): TypedContractEvent<
     StakedEvent.InputTuple,
@@ -344,6 +389,17 @@ export interface ABDSStaking extends BaseContract {
       RewardsWithdrawnEvent.InputTuple,
       RewardsWithdrawnEvent.OutputTuple,
       RewardsWithdrawnEvent.OutputObject
+    >;
+
+    "StakeDurationExtended(address,uint256,uint256)": TypedContractEvent<
+      StakeDurationExtendedEvent.InputTuple,
+      StakeDurationExtendedEvent.OutputTuple,
+      StakeDurationExtendedEvent.OutputObject
+    >;
+    StakeDurationExtended: TypedContractEvent<
+      StakeDurationExtendedEvent.InputTuple,
+      StakeDurationExtendedEvent.OutputTuple,
+      StakeDurationExtendedEvent.OutputObject
     >;
 
     "Staked(address,uint256,uint256,uint256)": TypedContractEvent<

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\dev\\staking\\contracts\\MockPriceOracle.sol": {
-      "lastModificationDate": 1738597971374,
-      "contentHash": "6d06aef02b89dd6f38f9ec48e0110998",
+      "lastModificationDate": 1738609022379,
+      "contentHash": "4107739d30f22dba511269b5626669b9",
       "sourceName": "contracts/MockPriceOracle.sol",
       "solcConfig": {
         "version": "0.8.27",
@@ -26,9 +26,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -68,9 +65,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -109,9 +103,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -148,9 +139,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -191,9 +179,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -230,9 +215,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -247,8 +229,8 @@
       ]
     },
     "D:\\dev\\staking\\contracts\\staking.sol": {
-      "lastModificationDate": 1738600901895,
-      "contentHash": "f91092da76f8e2f527bb76f2de8d55a4",
+      "lastModificationDate": 1738612050954,
+      "contentHash": "a3d9395a90629cc515c2ed5b3664f6fd",
       "sourceName": "contracts/staking.sol",
       "solcConfig": {
         "version": "0.8.27",
@@ -271,9 +253,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -314,9 +293,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -392,9 +368,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -446,8 +419,8 @@
       ]
     },
     "D:\\dev\\staking\\contracts\\UniswapV3PriceOracle.sol": {
-      "lastModificationDate": 1738597543479,
-      "contentHash": "0950cd143329222d76f6ec3d6ef7dcbf",
+      "lastModificationDate": 1738607536674,
+      "contentHash": "e1e13d4fb1728cd1df52961d05d09d00",
       "sourceName": "contracts/UniswapV3PriceOracle.sol",
       "solcConfig": {
         "version": "0.8.27",
@@ -470,9 +443,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -513,9 +483,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -559,9 +526,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -598,9 +562,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -637,9 +598,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -676,9 +634,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -715,9 +670,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },
@@ -754,9 +706,6 @@
                 "ast"
               ]
             }
-          },
-          "metadata": {
-            "useLiteralContent": false
           }
         }
       },

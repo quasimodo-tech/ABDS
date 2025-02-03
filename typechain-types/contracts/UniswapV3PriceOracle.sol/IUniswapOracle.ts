@@ -21,9 +21,16 @@ import type {
 
 export interface IUniswapOracleInterface extends Interface {
   getFunction(
-    nameOrSignature: "getABDSPriceInUSDC" | "getABDSPriceInUSDT"
+    nameOrSignature:
+      | "getABDSPriceInETH"
+      | "getABDSPriceInUSDC"
+      | "getABDSPriceInUSDT"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "getABDSPriceInETH",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getABDSPriceInUSDC",
     values?: undefined
@@ -33,6 +40,10 @@ export interface IUniswapOracleInterface extends Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "getABDSPriceInETH",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getABDSPriceInUSDC",
     data: BytesLike
@@ -86,6 +97,8 @@ export interface IUniswapOracle extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  getABDSPriceInETH: TypedContractMethod<[], [bigint], "view">;
+
   getABDSPriceInUSDC: TypedContractMethod<[], [bigint], "view">;
 
   getABDSPriceInUSDT: TypedContractMethod<[], [bigint], "view">;
@@ -94,6 +107,9 @@ export interface IUniswapOracle extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "getABDSPriceInETH"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "getABDSPriceInUSDC"
   ): TypedContractMethod<[], [bigint], "view">;

@@ -25,8 +25,10 @@ import type {
 export interface UniswapV3PriceOracleInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "abdsEthPool"
       | "abdsUsdcPool"
       | "abdsUsdtPool"
+      | "getABDSPriceInETH"
       | "getABDSPriceInUSDC"
       | "getABDSPriceInUSDT"
       | "owner"
@@ -38,11 +40,19 @@ export interface UniswapV3PriceOracleInterface extends Interface {
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 
   encodeFunctionData(
+    functionFragment: "abdsEthPool",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "abdsUsdcPool",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "abdsUsdtPool",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getABDSPriceInETH",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -60,7 +70,7 @@ export interface UniswapV3PriceOracleInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setPools",
-    values: [AddressLike, AddressLike]
+    values: [AddressLike, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -68,11 +78,19 @@ export interface UniswapV3PriceOracleInterface extends Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "abdsEthPool",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "abdsUsdcPool",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "abdsUsdtPool",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getABDSPriceInETH",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -151,9 +169,13 @@ export interface UniswapV3PriceOracle extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  abdsEthPool: TypedContractMethod<[], [string], "view">;
+
   abdsUsdcPool: TypedContractMethod<[], [string], "view">;
 
   abdsUsdtPool: TypedContractMethod<[], [string], "view">;
+
+  getABDSPriceInETH: TypedContractMethod<[], [bigint], "view">;
 
   getABDSPriceInUSDC: TypedContractMethod<[], [bigint], "view">;
 
@@ -164,7 +186,11 @@ export interface UniswapV3PriceOracle extends BaseContract {
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
   setPools: TypedContractMethod<
-    [_abdsUsdtPool: AddressLike, _abdsUsdcPool: AddressLike],
+    [
+      _abdsUsdtPool: AddressLike,
+      _abdsUsdcPool: AddressLike,
+      _abdsEthPool: AddressLike
+    ],
     [void],
     "nonpayable"
   >;
@@ -180,11 +206,17 @@ export interface UniswapV3PriceOracle extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "abdsEthPool"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "abdsUsdcPool"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "abdsUsdtPool"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getABDSPriceInETH"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "getABDSPriceInUSDC"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -200,7 +232,11 @@ export interface UniswapV3PriceOracle extends BaseContract {
   getFunction(
     nameOrSignature: "setPools"
   ): TypedContractMethod<
-    [_abdsUsdtPool: AddressLike, _abdsUsdcPool: AddressLike],
+    [
+      _abdsUsdtPool: AddressLike,
+      _abdsUsdcPool: AddressLike,
+      _abdsEthPool: AddressLike
+    ],
     [void],
     "nonpayable"
   >;
