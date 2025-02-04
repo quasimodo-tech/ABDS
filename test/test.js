@@ -12,9 +12,10 @@ describe("ABDSStaking Contract", function () {
   let owner;
   let user;
   let hacker;
+  let alice;
   let mockPriceOracle;
   beforeEach(async function () {
-    [owner, user, hacker] = await ethers.getSigners();
+    [owner, user, hacker, alice] = await ethers.getSigners();
 
     const Token = await ethers.getContractFactory("SimpleToken");
     abdsToken = await Token.deploy();
@@ -106,6 +107,9 @@ describe("ABDSStaking Contract", function () {
       await abdsToken
         .connect(user)
         .approve(ABDSStaking.getAddress(), 10000000000000);
+      await abdsToken
+        .connect(hacker)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
       await usdtToken
         .connect(user)
         .approve(ABDSStaking.getAddress(), 10000000000000);
@@ -118,6 +122,28 @@ describe("ABDSStaking Contract", function () {
       await expect(ABDSStaking.connect(user).Claim(47)).to.be.revertedWith(
         "Invalid token type"
       );
+    });
+
+    it("Should get correct reward on Claim(multi-staking)", async function () {
+      await ABDSStaking.connect(user).stakeTokens(1000, 365);
+      await time.increase(30 * 24 * 60 * 60);
+      await time.latest();
+
+      await ABDSStaking.connect(user).stakeTokens(10000, 365);
+      await time.increase(400 * 24 * 60 * 60);
+      await time.latest();
+
+      await ABDSStaking.connect(user).stakeTokens(1000, 365);
+      await time.increase(200 * 24 * 60 * 60);
+      await time.latest();
+
+      let currentUserToken = await abdsToken.balanceOf(user.address);
+      await ABDSStaking.connect(user).Claim(0);
+      let nextUserToken = await abdsToken.balanceOf(user.address);
+      expect(nextUserToken - currentUserToken).to.be.equal(1290);
+      await ABDSStaking.connect(user).withdraw();
+      currentUserToken = await abdsToken.balanceOf(user.address);
+      expect(currentUserToken - nextUserToken).to.be.equal(11000);
     });
 
     it("Should get correct reward on Claim(tier1)", async function () {

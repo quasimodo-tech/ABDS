@@ -105,7 +105,10 @@ contract ABDSStaking {
         uint256 i = 0;
         while (i < stakes.length) {
             // Check if the stake has matured
-            if (lastRewardTime[msg.sender] < stakes[i].startTime) {
+            if (
+                lastRewardTime[msg.sender] <
+                stakes[i].startTime + stakes[i].duration * 1 days
+            ) {
                 if (
                     block.timestamp >=
                     stakes[i].startTime + (stakes[i].duration * 1 days)
@@ -114,10 +117,10 @@ contract ABDSStaking {
                         stakes[i].apr *
                         stakes[i].duration) / (365 * 100);
                     totalReward += reward;
-
+                    i++;
                     // Remove the matured stake
-                    stakes[i] = stakes[stakes.length - 1]; // Replace it with the last stake
-                    stakes.pop(); // Remove the last stake
+                    // stakes[i] = stakes[stakes.length - 1]; // Replace it with the last stake
+                    // stakes.pop(); // Remove the last stake
                 } else {
                     i++; // If the stake hasn't matured, move to the next one
                 }
@@ -135,6 +138,7 @@ contract ABDSStaking {
             );
             abdsToken.transfer(msg.sender, totalReward);
             lastRewardTime[msg.sender] = block.timestamp;
+            emit RewardsWithdrawn(msg.sender, totalReward, tokenType);
         } else {
             uint256 convertedAmount;
             if (tokenType == 1) {
@@ -146,6 +150,7 @@ contract ABDSStaking {
                 );
                 usdtToken.transfer(msg.sender, convertedAmount);
                 lastRewardTime[msg.sender] = block.timestamp;
+                emit RewardsWithdrawn(msg.sender, convertedAmount, tokenType);
             } else if (tokenType == 2) {
                 uint256 price = uniswapOracle.getABDSPriceInUSDC();
                 convertedAmount = (totalReward * price) / 1e18;
@@ -154,10 +159,12 @@ contract ABDSStaking {
                     "Insufficient USDC balance"
                 );
                 usdcToken.transfer(msg.sender, convertedAmount);
+                lastRewardTime[msg.sender] = block.timestamp;
+                emit RewardsWithdrawn(msg.sender, convertedAmount, tokenType);
             } else if (tokenType == 3) {
                 // Fetch the price of ABDS token in Ether from the Uniswap Oracle
-                uint256 priceInEther = uniswapOracle.getABDSPriceInETH();
-                convertedAmount = (totalReward * priceInEther) / 1e18;
+                uint256 price = uniswapOracle.getABDSPriceInETH();
+                convertedAmount = (totalReward * price) / 1e18;
 
                 // Transfer Ether as reward (after converting it from ABDS to Ether)
                 require(
@@ -165,11 +172,10 @@ contract ABDSStaking {
                     "Insufficient Ether balance"
                 );
                 payable(msg.sender).transfer(convertedAmount); // Transfer Ether to the user
+                emit RewardsWithdrawn(msg.sender, convertedAmount, tokenType);
+                lastRewardTime[msg.sender] = block.timestamp;
             }
         }
-
-        emit RewardsWithdrawn(msg.sender, totalReward, tokenType);
-        lastRewardTime[msg.sender] = block.timestamp;
     }
 
     function withdraw() external {
@@ -186,7 +192,10 @@ contract ABDSStaking {
                 totalPrincipal += stakes[i].amount;
 
                 // Only calculate rewards if they haven't been claimed yet
-                if (lastRewardTime[msg.sender] < stakes[i].startTime) {
+                if (
+                    lastRewardTime[msg.sender] <
+                    stakes[i].startTime + stakes[i].duration * 1 days
+                ) {
                     uint256 reward = (stakes[i].amount *
                         stakes[i].apr *
                         stakes[i].duration) / (365 * 100);
