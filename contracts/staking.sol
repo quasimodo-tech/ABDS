@@ -155,8 +155,6 @@ contract ABDSStaking is Ownable {
                 uint256 price = uniswapOracle.getABDSPriceInUSDT();
                 convertedAmount = (totalReward * price) / 1e18;
 
-                console.log("convertedAmount");
-                console.log(convertedAmount);
                 require(
                     usdtToken.balanceOf(address(this)) >= convertedAmount,
                     "Insufficient USDT balance"
