@@ -2,9 +2,10 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol"; // Import console.sol
 import "./UniswapV3PriceOracle.sol";
-contract ABDSStaking is Ownable {
+contract ABDSStaking is Ownable, ReentrancyGuard {
     struct Stake {
         uint256 amount;
         uint256 startTime;
@@ -18,7 +19,7 @@ contract ABDSStaking is Ownable {
     IERC20 public usdtToken;
     IERC20 public usdcToken;
     IUniswapOracle public uniswapOracle;
-    uint256 public ADDITIONAL_REWARD_APR = 20;
+    uint256 public ADDITIONAL_REWARD_APR = 60;
     event Staked(
         address indexed user,
         uint256 amount,
@@ -101,7 +102,7 @@ contract ABDSStaking is Ownable {
         );
         emit Staked(msg.sender, _amount, _duration, baseApr);
     }
-    function Claim(uint8 tokenType) external {
+    function Claim(uint8 tokenType) external nonReentrant {
         require(tokenType <= 3, "Invalid token type");
         Stake[] storage stakes = userStakes[msg.sender];
         uint256 totalReward = 0;
@@ -187,7 +188,7 @@ contract ABDSStaking is Ownable {
             }
         }
     }
-    function withdraw() external {
+    function withdraw() external nonReentrant {
         Stake[] storage stakes = userStakes[msg.sender];
         uint256 totalPrincipal = 0;
         uint256 totalRewards = 0;
