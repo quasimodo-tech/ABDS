@@ -29,24 +29,40 @@ export declare namespace ABDSStaking {
     startTime: BigNumberish;
     duration: BigNumberish;
     apr: BigNumberish;
+    earlyClaimAllowed: boolean;
   };
 
   export type StakeStructOutput = [
     amount: bigint,
     startTime: bigint,
     duration: bigint,
-    apr: bigint
-  ] & { amount: bigint; startTime: bigint; duration: bigint; apr: bigint };
+    apr: bigint,
+    earlyClaimAllowed: boolean
+  ] & {
+    amount: bigint;
+    startTime: bigint;
+    duration: bigint;
+    apr: bigint;
+    earlyClaimAllowed: boolean;
+  };
 }
 
 export interface ABDSStakingInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "ADDITIONAL_REWARD_APR"
       | "Claim"
       | "abdsToken"
+      | "boost"
+      | "currentReward"
       | "getUserStake"
+      | "getUserStakes"
       | "lastRewardTime"
+      | "owner"
+      | "renounceOwnership"
+      | "setExtraAPR"
       | "stakeTokens"
+      | "transferOwnership"
       | "uniswapOracle"
       | "usdcToken"
       | "usdtToken"
@@ -56,24 +72,55 @@ export interface ABDSStakingInterface extends Interface {
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "OwnershipTransferred"
       | "RewardsWithdrawn"
+      | "StakeDurationExtended"
       | "Staked"
       | "UnlockedStakesWithdrawn"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "ADDITIONAL_REWARD_APR",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "Claim", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "abdsToken", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "boost",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "currentReward",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getUserStake",
     values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "lastRewardTime",
+    functionFragment: "getUserStakes",
     values: [AddressLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "lastRewardTime",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setExtraAPR",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "stakeTokens",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "uniswapOracle",
@@ -87,18 +134,44 @@ export interface ABDSStakingInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "withdraw", values?: undefined): string;
 
+  decodeFunctionResult(
+    functionFragment: "ADDITIONAL_REWARD_APR",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "Claim", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "abdsToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "boost", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "currentReward",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getUserStake",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getUserStakes",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "lastRewardTime",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setExtraAPR",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "stakeTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -109,6 +182,19 @@ export interface ABDSStakingInterface extends Interface {
   decodeFunctionResult(functionFragment: "usdtToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "userStakes", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+}
+
+export namespace OwnershipTransferredEvent {
+  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
+  export type OutputTuple = [previousOwner: string, newOwner: string];
+  export interface OutputObject {
+    previousOwner: string;
+    newOwner: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace RewardsWithdrawnEvent {
@@ -122,6 +208,24 @@ export namespace RewardsWithdrawnEvent {
     user: string;
     reward: bigint;
     tokenType: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace StakeDurationExtendedEvent {
+  export type InputTuple = [
+    user: AddressLike,
+    amount: BigNumberish,
+    duration: BigNumberish
+  ];
+  export type OutputTuple = [user: string, amount: bigint, duration: bigint];
+  export interface OutputObject {
+    user: string;
+    amount: bigint;
+    duration: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -219,9 +323,19 @@ export interface ABDSStaking extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  ADDITIONAL_REWARD_APR: TypedContractMethod<[], [bigint], "view">;
+
   Claim: TypedContractMethod<[tokenType: BigNumberish], [void], "nonpayable">;
 
   abdsToken: TypedContractMethod<[], [string], "view">;
+
+  boost: TypedContractMethod<
+    [index: BigNumberish, additionaldays: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  currentReward: TypedContractMethod<[], [bigint], "view">;
 
   getUserStake: TypedContractMethod<
     [user: AddressLike, index: BigNumberish],
@@ -229,10 +343,36 @@ export interface ABDSStaking extends BaseContract {
     "view"
   >;
 
+  getUserStakes: TypedContractMethod<
+    [user: AddressLike],
+    [ABDSStaking.StakeStructOutput[]],
+    "view"
+  >;
+
   lastRewardTime: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
+  owner: TypedContractMethod<[], [string], "view">;
+
+  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+
+  setExtraAPR: TypedContractMethod<
+    [_extraAPR: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
   stakeTokens: TypedContractMethod<
-    [_amount: BigNumberish, _duration: BigNumberish],
+    [
+      _amount: BigNumberish,
+      _duration: BigNumberish,
+      _earlyClaimAllowed: boolean
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  transferOwnership: TypedContractMethod<
+    [newOwner: AddressLike],
     [void],
     "nonpayable"
   >;
@@ -246,11 +386,12 @@ export interface ABDSStaking extends BaseContract {
   userStakes: TypedContractMethod<
     [arg0: AddressLike, arg1: BigNumberish],
     [
-      [bigint, bigint, bigint, bigint] & {
+      [bigint, bigint, bigint, bigint, boolean] & {
         amount: bigint;
         startTime: bigint;
         duration: bigint;
         apr: bigint;
+        earlyClaimAllowed: boolean;
       }
     ],
     "view"
@@ -263,11 +404,24 @@ export interface ABDSStaking extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "ADDITIONAL_REWARD_APR"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "Claim"
   ): TypedContractMethod<[tokenType: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "abdsToken"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "boost"
+  ): TypedContractMethod<
+    [index: BigNumberish, additionaldays: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "currentReward"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "getUserStake"
   ): TypedContractMethod<
@@ -276,15 +430,38 @@ export interface ABDSStaking extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "getUserStakes"
+  ): TypedContractMethod<
+    [user: AddressLike],
+    [ABDSStaking.StakeStructOutput[]],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "lastRewardTime"
   ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
   getFunction(
+    nameOrSignature: "owner"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "renounceOwnership"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setExtraAPR"
+  ): TypedContractMethod<[_extraAPR: BigNumberish], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "stakeTokens"
   ): TypedContractMethod<
-    [_amount: BigNumberish, _duration: BigNumberish],
+    [
+      _amount: BigNumberish,
+      _duration: BigNumberish,
+      _earlyClaimAllowed: boolean
+    ],
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "transferOwnership"
+  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "uniswapOracle"
   ): TypedContractMethod<[], [string], "view">;
@@ -299,11 +476,12 @@ export interface ABDSStaking extends BaseContract {
   ): TypedContractMethod<
     [arg0: AddressLike, arg1: BigNumberish],
     [
-      [bigint, bigint, bigint, bigint] & {
+      [bigint, bigint, bigint, bigint, boolean] & {
         amount: bigint;
         startTime: bigint;
         duration: bigint;
         apr: bigint;
+        earlyClaimAllowed: boolean;
       }
     ],
     "view"
@@ -313,11 +491,25 @@ export interface ABDSStaking extends BaseContract {
   ): TypedContractMethod<[], [void], "nonpayable">;
 
   getEvent(
+    key: "OwnershipTransferred"
+  ): TypedContractEvent<
+    OwnershipTransferredEvent.InputTuple,
+    OwnershipTransferredEvent.OutputTuple,
+    OwnershipTransferredEvent.OutputObject
+  >;
+  getEvent(
     key: "RewardsWithdrawn"
   ): TypedContractEvent<
     RewardsWithdrawnEvent.InputTuple,
     RewardsWithdrawnEvent.OutputTuple,
     RewardsWithdrawnEvent.OutputObject
+  >;
+  getEvent(
+    key: "StakeDurationExtended"
+  ): TypedContractEvent<
+    StakeDurationExtendedEvent.InputTuple,
+    StakeDurationExtendedEvent.OutputTuple,
+    StakeDurationExtendedEvent.OutputObject
   >;
   getEvent(
     key: "Staked"
@@ -335,6 +527,17 @@ export interface ABDSStaking extends BaseContract {
   >;
 
   filters: {
+    "OwnershipTransferred(address,address)": TypedContractEvent<
+      OwnershipTransferredEvent.InputTuple,
+      OwnershipTransferredEvent.OutputTuple,
+      OwnershipTransferredEvent.OutputObject
+    >;
+    OwnershipTransferred: TypedContractEvent<
+      OwnershipTransferredEvent.InputTuple,
+      OwnershipTransferredEvent.OutputTuple,
+      OwnershipTransferredEvent.OutputObject
+    >;
+
     "RewardsWithdrawn(address,uint256,uint8)": TypedContractEvent<
       RewardsWithdrawnEvent.InputTuple,
       RewardsWithdrawnEvent.OutputTuple,
@@ -344,6 +547,17 @@ export interface ABDSStaking extends BaseContract {
       RewardsWithdrawnEvent.InputTuple,
       RewardsWithdrawnEvent.OutputTuple,
       RewardsWithdrawnEvent.OutputObject
+    >;
+
+    "StakeDurationExtended(address,uint256,uint256)": TypedContractEvent<
+      StakeDurationExtendedEvent.InputTuple,
+      StakeDurationExtendedEvent.OutputTuple,
+      StakeDurationExtendedEvent.OutputObject
+    >;
+    StakeDurationExtended: TypedContractEvent<
+      StakeDurationExtendedEvent.InputTuple,
+      StakeDurationExtendedEvent.OutputTuple,
+      StakeDurationExtendedEvent.OutputObject
     >;
 
     "Staked(address,uint256,uint256,uint256)": TypedContractEvent<

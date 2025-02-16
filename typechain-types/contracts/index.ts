@@ -3,8 +3,10 @@
 /* eslint-disable */
 import type * as mockPriceOracleSol from "./MockPriceOracle.sol";
 export type { mockPriceOracleSol };
-import type * as uniswapV3PriceOracleSol from "./UniswapV3PriceOracle.sol";
-export type { uniswapV3PriceOracleSol };
+import type * as uniswapV2PriceOracleSol from "./UniswapV2PriceOracle.sol";
+export type { uniswapV2PriceOracleSol };
 import type * as stakingSol from "./staking.sol";
 export type { stakingSol };
+import type * as tokenSol from "./token.sol";
+export type { tokenSol };
 export type { SimpleToken } from "./SimpleToken";

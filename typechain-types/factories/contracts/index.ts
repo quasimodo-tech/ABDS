@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as mockPriceOracleSol from "./MockPriceOracle.sol";
-export * as uniswapV3PriceOracleSol from "./UniswapV3PriceOracle.sol";
+export * as uniswapV2PriceOracleSol from "./UniswapV2PriceOracle.sol";
 export * as stakingSol from "./staking.sol";
+export * as tokenSol from "./token.sol";
 export { SimpleToken__factory } from "./SimpleToken__factory";

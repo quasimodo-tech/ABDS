@@ -3,7 +3,6 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
   BytesLike,
   FunctionFragment,
   Result,
@@ -23,83 +22,26 @@ import type {
   TypedContractMethod,
 } from "../../common";
 
-export interface MockPriceOracleInterface extends Interface {
+export interface OwnableInterface extends Interface {
   getFunction(
-    nameOrSignature:
-      | "getABDSPriceInETH"
-      | "getABDSPriceInUSDC"
-      | "getABDSPriceInUSDT"
-      | "owner"
-      | "renounceOwnership"
-      | "setABDSPriceInETH"
-      | "setABDSPriceInUSDC"
-      | "setABDSPriceInUSDT"
-      | "transferOwnership"
+    nameOrSignature: "owner" | "renounceOwnership" | "transferOwnership"
   ): FunctionFragment;
 
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 
-  encodeFunctionData(
-    functionFragment: "getABDSPriceInETH",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getABDSPriceInUSDC",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getABDSPriceInUSDT",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "setABDSPriceInETH",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setABDSPriceInUSDC",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setABDSPriceInUSDT",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [AddressLike]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "getABDSPriceInETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getABDSPriceInUSDC",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getABDSPriceInUSDT",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setABDSPriceInETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setABDSPriceInUSDC",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setABDSPriceInUSDT",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -121,11 +63,11 @@ export namespace OwnershipTransferredEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export interface MockPriceOracle extends BaseContract {
-  connect(runner?: ContractRunner | null): MockPriceOracle;
+export interface Ownable extends BaseContract {
+  connect(runner?: ContractRunner | null): Ownable;
   waitForDeployment(): Promise<this>;
 
-  interface: MockPriceOracleInterface;
+  interface: OwnableInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -164,33 +106,9 @@ export interface MockPriceOracle extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  getABDSPriceInETH: TypedContractMethod<[], [bigint], "view">;
-
-  getABDSPriceInUSDC: TypedContractMethod<[], [bigint], "view">;
-
-  getABDSPriceInUSDT: TypedContractMethod<[], [bigint], "view">;
-
   owner: TypedContractMethod<[], [string], "view">;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
-
-  setABDSPriceInETH: TypedContractMethod<
-    [_price: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  setABDSPriceInUSDC: TypedContractMethod<
-    [_price: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  setABDSPriceInUSDT: TypedContractMethod<
-    [_price: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
 
   transferOwnership: TypedContractMethod<
     [newOwner: AddressLike],
@@ -203,29 +121,11 @@ export interface MockPriceOracle extends BaseContract {
   ): T;
 
   getFunction(
-    nameOrSignature: "getABDSPriceInETH"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getABDSPriceInUSDC"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getABDSPriceInUSDT"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setABDSPriceInETH"
-  ): TypedContractMethod<[_price: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setABDSPriceInUSDC"
-  ): TypedContractMethod<[_price: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setABDSPriceInUSDT"
-  ): TypedContractMethod<[_price: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "transferOwnership"
   ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;

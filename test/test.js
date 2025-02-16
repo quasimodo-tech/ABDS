@@ -2,6 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { time } = require("@nomicfoundation/hardhat-network-helpers");
 const { Reverter } = require("@nomicfoundation/hardhat-chai-matchers");
+const provider = new ethers.JsonRpcApiProvider();
 describe("ABDSStaking Contract", function () {
   let ABDSStaking;
   let PriceOracle;
@@ -12,9 +13,10 @@ describe("ABDSStaking Contract", function () {
   let owner;
   let user;
   let hacker;
+  let alice;
   let mockPriceOracle;
   beforeEach(async function () {
-    [owner, user, hacker] = await ethers.getSigners();
+    [owner, user, hacker, alice] = await ethers.getSigners();
 
     const Token = await ethers.getContractFactory("SimpleToken");
     abdsToken = await Token.deploy();
@@ -24,6 +26,7 @@ describe("ABDSStaking Contract", function () {
 
     const MockPriceOracle = await ethers.getContractFactory("MockPriceOracle");
     mockPriceOracle = await MockPriceOracle.deploy(
+      ethers.parseUnits("1", 18),
       ethers.parseUnits("1", 18),
       ethers.parseUnits("1", 18)
     );
@@ -63,47 +66,60 @@ describe("ABDSStaking Contract", function () {
       expect(addr_usdt).to.not.equal(ethers.ZeroAddress);
       expect(addr_usdc).to.not.equal(ethers.ZeroAddress);
     });
+    /* it("------getPrice-----", async function () {
+      const pairAbi = [
+        "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
+      ];
+      const pairAddress = "0xA7BC793F932fb0Cc044b3D40a2739823cAc41ba5";
+      const pairContract = new ethers.Contract(pairAddress, pairAbi, provider);
+      const [reserve0, reserve1] = await pairContract.getReserves();
+      // reserve0 = await pairContract.getABDSPriceInUSDT();
+      console.log(reserve0);
+    }); */
   });
 
   describe("StakeToken", function () {
     it("Should return on zero balances", async function () {
       await expect(
-        ABDSStaking.connect(owner).stakeTokens(0, 30)
+        ABDSStaking.connect(owner).stakeTokens(0, 30, 0)
       ).to.be.revertedWith("Amount must be greater than 0");
     });
 
     it("Should return on zero time", async function () {
       await expect(
-        ABDSStaking.connect(owner).stakeTokens(100, 0)
+        ABDSStaking.connect(owner).stakeTokens(100, 0, 0)
       ).to.be.revertedWith("Duration must be greater than 0");
     });
 
     it("Should set correct APR value on tier 1", async function () {
-      await ABDSStaking.connect(user).stakeTokens(100, 30);
+      await ABDSStaking.connect(user).stakeTokens(100, 30, 1);
       const userStake = await ABDSStaking.getUserStake(user.address, 0);
-      expect(userStake.apr).to.be.equal(9);
+      expect(userStake.apr).to.be.equal(90);
     });
     it("Should set correct APR value on tier 2", async function () {
-      await ABDSStaking.connect(user).stakeTokens(10000, 30);
+      await ABDSStaking.connect(user).stakeTokens(10000, 30, 1);
       const userStake = await ABDSStaking.getUserStake(user.address, 0);
-      expect(userStake.apr).to.be.equal(12);
+      expect(userStake.apr).to.be.equal(120);
     });
     it("Should set correct APR value on tier 3", async function () {
-      await ABDSStaking.connect(user).stakeTokens(1000000, 30);
+      await ABDSStaking.connect(user).stakeTokens(1000000, 30, 1);
       const userStake = await ABDSStaking.getUserStake(user.address, 0);
-      expect(userStake.apr).to.be.equal(15);
+      expect(userStake.apr).to.be.equal(150);
     });
   });
 
   describe("Claim Reward", function () {
     beforeEach(async function () {
-      const mintAmount = 1000000; // 1000 tokens
+      const mintAmount = 100000000; // 1000 tokens
       await abdsToken.mint(ABDSStaking.getAddress(), mintAmount);
       await usdtToken.mint(ABDSStaking.getAddress(), mintAmount);
       await usdcToken.mint(ABDSStaking.getAddress(), mintAmount);
 
       await abdsToken
         .connect(user)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+      await abdsToken
+        .connect(hacker)
         .approve(ABDSStaking.getAddress(), 10000000000000);
       await usdtToken
         .connect(user)
@@ -114,13 +130,35 @@ describe("ABDSStaking Contract", function () {
     });
 
     it("Should revert on invalid token type", async function () {
-      await expect(ABDSStaking.connect(user).Claim(3)).to.be.revertedWith(
+      await expect(ABDSStaking.connect(user).Claim(47)).to.be.revertedWith(
         "Invalid token type"
       );
     });
 
+    it("Should get correct reward on Claim(multi-staking)", async function () {
+      await ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
+      await time.increase(30 * 24 * 60 * 60);
+      await time.latest();
+
+      await ABDSStaking.connect(user).stakeTokens(10000, 365, 1);
+      await time.increase(400 * 24 * 60 * 60);
+      await time.latest();
+
+      await ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
+      await time.increase(200 * 24 * 60 * 60);
+      await time.latest();
+
+      let currentUserToken = await abdsToken.balanceOf(user.address);
+      await ABDSStaking.connect(user).Claim(0);
+      let nextUserToken = await abdsToken.balanceOf(user.address);
+      expect(nextUserToken - currentUserToken).to.be.equal(2176);
+      await ABDSStaking.connect(user).withdraw();
+      currentUserToken = await abdsToken.balanceOf(user.address);
+      expect(currentUserToken - nextUserToken).to.be.equal(11000);
+    });
+
     it("Should get correct reward on Claim(tier1)", async function () {
-      ABDSStaking.connect(user).stakeTokens(1000, 365);
+      ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
       await time.latest();
       const currentUserToken = await abdsToken.balanceOf(user.address);
 
@@ -133,7 +171,7 @@ describe("ABDSStaking Contract", function () {
     });
 
     it("Should get correct reward on Claim(tier2)", async function () {
-      ABDSStaking.connect(user).stakeTokens(10000, 365);
+      ABDSStaking.connect(user).stakeTokens(10000, 365, 1);
       await time.latest();
       const currentUserToken = await abdsToken.balanceOf(user.address);
 
@@ -146,7 +184,7 @@ describe("ABDSStaking Contract", function () {
     });
 
     it("Should get correct reward on Claim(tier3)", async function () {
-      ABDSStaking.connect(user).stakeTokens(200000, 365);
+      ABDSStaking.connect(user).stakeTokens(200000, 365, 1);
       await time.latest();
       const currentUserToken = await abdsToken.balanceOf(user.address);
 
@@ -160,7 +198,7 @@ describe("ABDSStaking Contract", function () {
 
     it("Should get correct reward on Claim(usdt)", async function () {
       mockPriceOracle.setABDSPriceInUSDT(ethers.parseUnits("1.5", 18));
-      ABDSStaking.connect(user).stakeTokens(1000, 365);
+      ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
       await time.latest();
       const currentUserToken = await usdtToken.balanceOf(user.address);
 
@@ -174,7 +212,7 @@ describe("ABDSStaking Contract", function () {
 
     it("Should get correct reward on Claim(usdc)", async function () {
       mockPriceOracle.setABDSPriceInUSDC(ethers.parseUnits("0.5", 18));
-      ABDSStaking.connect(user).stakeTokens(1000, 365);
+      ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
       await time.latest();
       const currentUserToken = await usdcToken.balanceOf(user.address);
 
@@ -185,11 +223,11 @@ describe("ABDSStaking Contract", function () {
       const nextUserToken = await usdcToken.balanceOf(user.address);
       expect(nextUserToken - currentUserToken).to.be.equal(45);
     });
+
     it("Should revert if too big reward(usdt)", async function () {
-      mockPriceOracle.setABDSPriceInUSDT(ethers.parseUnits("1.5", 18));
-      ABDSStaking.connect(user).stakeTokens(100000000, 365);
+      await mockPriceOracle.setABDSPriceInUSDT(ethers.parseUnits("1.5", 20));
+      await ABDSStaking.connect(user).stakeTokens(100000000, 365, 1);
       await time.latest();
-      const currentUserToken = await usdtToken.balanceOf(user.address);
 
       await time.increase(365 * 24 * 60 * 60);
       await time.latest();
@@ -199,15 +237,30 @@ describe("ABDSStaking Contract", function () {
     });
 
     it("Should revert if too big reward(usdc)", async function () {
-      mockPriceOracle.setABDSPriceInUSDC(ethers.parseUnits("1.5", 18));
-      ABDSStaking.connect(user).stakeTokens(100000000, 365);
+      await mockPriceOracle.setABDSPriceInUSDC(ethers.parseUnits("1.5", 20));
+      await ABDSStaking.connect(user).stakeTokens(100000000, 365, 1);
       await time.latest();
-      const currentUserToken = await usdcToken.balanceOf(user.address);
 
       await time.increase(365 * 24 * 60 * 60);
       await time.latest();
       await expect(ABDSStaking.connect(user).Claim(2)).to.be.revertedWith(
         "Insufficient USDC balance"
+      );
+    });
+
+    it("Should revert if too big reward(eth)", async function () {
+      await mockPriceOracle.setABDSPriceInETH(ethers.parseUnits("1", 18));
+      await ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
+      await time.latest();
+      const currentUserToken = await ethers.provider.getBalance(
+        ABDSStaking.getAddress()
+      );
+
+      await time.increase(365 * 24 * 60 * 60);
+      await time.latest();
+
+      await expect(ABDSStaking.connect(user).Claim(3)).to.be.revertedWith(
+        "Insufficient Ether balance"
       );
     });
   });
@@ -231,7 +284,7 @@ describe("ABDSStaking Contract", function () {
     });
 
     it("Should revert on lock time", async function () {
-      ABDSStaking.connect(user).stakeTokens(1000, 365);
+      ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
       await time.latest();
       const currentUserToken = await abdsToken.balanceOf(user.address);
       await expect(ABDSStaking.connect(user).withdraw()).to.be.revertedWith(
@@ -257,8 +310,8 @@ describe("ABDSStaking Contract", function () {
     });
 
     it("Should revert on not enough money", async function () {
-      ABDSStaking.connect(hacker).stakeTokens(5000, 365);
-      ABDSStaking.connect(user).stakeTokens(1000, 365);
+      ABDSStaking.connect(hacker).stakeTokens(5000, 365, 1);
+      ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
 
       await time.increase(368 * 24 * 60 * 60);
       await time.latest();
@@ -267,6 +320,55 @@ describe("ABDSStaking Contract", function () {
       await expect(ABDSStaking.connect(user).withdraw()).to.be.revertedWith(
         "Insufficient ABDS balance"
       );
+    });
+  });
+
+  describe("Boost days", function () {
+    beforeEach(async function () {
+      const mintAmount = 1000000; // 1000 tokens
+      await abdsToken.mint(ABDSStaking.getAddress(), mintAmount);
+      await abdsToken
+        .connect(user)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+      await usdtToken
+        .connect(user)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+      await usdcToken
+        .connect(user)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+      await abdsToken
+        .connect(hacker)
+        .approve(ABDSStaking.getAddress(), 10000000000000);
+    });
+
+    it("Should revert on zero days", async function () {
+      await ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
+      await expect(ABDSStaking.connect(user).boost(0, 0)).to.be.revertedWith(
+        "Additional days must be greater than 0"
+      );
+    });
+
+    it("Should revert after unlock time", async function () {
+      await ABDSStaking.connect(user).stakeTokens(1000, 365, 1);
+      await time.increase(368 * 24 * 60 * 60);
+      await time.latest();
+      await expect(ABDSStaking.connect(user).boost(0, 150)).to.be.revertedWith(
+        "lock time passed"
+      );
+    });
+
+    it("Should boost correctly", async function () {
+      await ABDSStaking.connect(user).stakeTokens(1000, 100, 1);
+      await time.increase(80 * 24 * 60 * 60);
+      await time.latest();
+      await ABDSStaking.connect(user).boost(0, 265);
+      await time.increase(285 * 24 * 60 * 60);
+      await time.latest();
+
+      const current = await abdsToken.balanceOf(user.address);
+      await ABDSStaking.connect(user).withdraw();
+      const next = await abdsToken.balanceOf(user.address);
+      expect(next - current).to.be.equals(1140);
     });
   });
 });

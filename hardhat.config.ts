@@ -3,7 +3,13 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-ethers"
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.27",
+  solidity: {
+    compilers: [
+      { version: "0.8.20" },
+      { version: "0.8.21" },
+      { version: "0.8.27" } // Allow multiple versions
+    ]
+  },
   networks: {
     sepolia: {
       url: "https://sepolia.infura.io/v3/ba8799c0c60f4df7a29f492892228321",

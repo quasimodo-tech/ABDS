@@ -6,7 +6,7 @@ import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IUniswapOracle,
   IUniswapOracleInterface,
-} from "../../../contracts/UniswapV3PriceOracle.sol/IUniswapOracle";
+} from "../../../contracts/UniswapV2PriceOracle.sol/IUniswapOracle";
 
 const _abi = [
   {

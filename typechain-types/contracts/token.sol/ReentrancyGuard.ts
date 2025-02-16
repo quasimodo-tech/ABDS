@@ -3,9 +3,7 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BytesLike,
   FunctionFragment,
-  Result,
   Interface,
   ContractRunner,
   ContractMethod,
@@ -16,49 +14,15 @@ import type {
   TypedDeferredTopicFilter,
   TypedEventLog,
   TypedListener,
-  TypedContractMethod,
 } from "../../common";
 
-export interface IUniswapOracleInterface extends Interface {
-  getFunction(
-    nameOrSignature:
-      | "getABDSPriceInETH"
-      | "getABDSPriceInUSDC"
-      | "getABDSPriceInUSDT"
-  ): FunctionFragment;
+export interface ReentrancyGuardInterface extends Interface {}
 
-  encodeFunctionData(
-    functionFragment: "getABDSPriceInETH",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getABDSPriceInUSDC",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getABDSPriceInUSDT",
-    values?: undefined
-  ): string;
-
-  decodeFunctionResult(
-    functionFragment: "getABDSPriceInETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getABDSPriceInUSDC",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getABDSPriceInUSDT",
-    data: BytesLike
-  ): Result;
-}
-
-export interface IUniswapOracle extends BaseContract {
-  connect(runner?: ContractRunner | null): IUniswapOracle;
+export interface ReentrancyGuard extends BaseContract {
+  connect(runner?: ContractRunner | null): ReentrancyGuard;
   waitForDeployment(): Promise<this>;
 
-  interface: IUniswapOracleInterface;
+  interface: ReentrancyGuardInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -97,25 +61,9 @@ export interface IUniswapOracle extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  getABDSPriceInETH: TypedContractMethod<[], [bigint], "view">;
-
-  getABDSPriceInUSDC: TypedContractMethod<[], [bigint], "view">;
-
-  getABDSPriceInUSDT: TypedContractMethod<[], [bigint], "view">;
-
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
-
-  getFunction(
-    nameOrSignature: "getABDSPriceInETH"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getABDSPriceInUSDC"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getABDSPriceInUSDT"
-  ): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
 }

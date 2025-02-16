@@ -3,7 +3,6 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
   BytesLike,
   FunctionFragment,
   Result,
@@ -23,22 +22,35 @@ import type {
   TypedContractMethod,
 } from "../../common";
 
-export interface MockPriceOracleInterface extends Interface {
+export interface UniswapV2PriceOracleInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "abdsEthPool"
+      | "abdsUsdcPool"
+      | "abdsUsdtPool"
       | "getABDSPriceInETH"
       | "getABDSPriceInUSDC"
       | "getABDSPriceInUSDT"
       | "owner"
       | "renounceOwnership"
-      | "setABDSPriceInETH"
-      | "setABDSPriceInUSDC"
-      | "setABDSPriceInUSDT"
+      | "setPools"
       | "transferOwnership"
   ): FunctionFragment;
 
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "abdsEthPool",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "abdsUsdcPool",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "abdsUsdtPool",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getABDSPriceInETH",
     values?: undefined
@@ -57,22 +69,26 @@ export interface MockPriceOracleInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "setABDSPriceInETH",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setABDSPriceInUSDC",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setABDSPriceInUSDT",
-    values: [BigNumberish]
+    functionFragment: "setPools",
+    values: [AddressLike, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [AddressLike]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "abdsEthPool",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "abdsUsdcPool",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "abdsUsdtPool",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getABDSPriceInETH",
     data: BytesLike
@@ -90,18 +106,7 @@ export interface MockPriceOracleInterface extends Interface {
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "setABDSPriceInETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setABDSPriceInUSDC",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setABDSPriceInUSDT",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "setPools", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
@@ -121,11 +126,11 @@ export namespace OwnershipTransferredEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export interface MockPriceOracle extends BaseContract {
-  connect(runner?: ContractRunner | null): MockPriceOracle;
+export interface UniswapV2PriceOracle extends BaseContract {
+  connect(runner?: ContractRunner | null): UniswapV2PriceOracle;
   waitForDeployment(): Promise<this>;
 
-  interface: MockPriceOracleInterface;
+  interface: UniswapV2PriceOracleInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -164,6 +169,12 @@ export interface MockPriceOracle extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  abdsEthPool: TypedContractMethod<[], [string], "view">;
+
+  abdsUsdcPool: TypedContractMethod<[], [string], "view">;
+
+  abdsUsdtPool: TypedContractMethod<[], [string], "view">;
+
   getABDSPriceInETH: TypedContractMethod<[], [bigint], "view">;
 
   getABDSPriceInUSDC: TypedContractMethod<[], [bigint], "view">;
@@ -174,20 +185,12 @@ export interface MockPriceOracle extends BaseContract {
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
-  setABDSPriceInETH: TypedContractMethod<
-    [_price: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  setABDSPriceInUSDC: TypedContractMethod<
-    [_price: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  setABDSPriceInUSDT: TypedContractMethod<
-    [_price: BigNumberish],
+  setPools: TypedContractMethod<
+    [
+      _abdsUsdtPool: AddressLike,
+      _abdsUsdcPool: AddressLike,
+      _abdsEthPool: AddressLike
+    ],
     [void],
     "nonpayable"
   >;
@@ -202,6 +205,15 @@ export interface MockPriceOracle extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "abdsEthPool"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "abdsUsdcPool"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "abdsUsdtPool"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "getABDSPriceInETH"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -218,14 +230,16 @@ export interface MockPriceOracle extends BaseContract {
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "setABDSPriceInETH"
-  ): TypedContractMethod<[_price: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setABDSPriceInUSDC"
-  ): TypedContractMethod<[_price: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setABDSPriceInUSDT"
-  ): TypedContractMethod<[_price: BigNumberish], [void], "nonpayable">;
+    nameOrSignature: "setPools"
+  ): TypedContractMethod<
+    [
+      _abdsUsdtPool: AddressLike,
+      _abdsUsdcPool: AddressLike,
+      _abdsEthPool: AddressLike
+    ],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "transferOwnership"
   ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
